@@ -6,6 +6,8 @@ import * as url from 'url';
 import * as electronLocalshortcut from 'electron-localshortcut';
 import * as store from './store';
 import { isBridgeRunning, runBridgeProcess } from './bridge';
+import { init as initUpdater } from './update';
+import { UpdaterSignal } from 'electron-updater';
 
 let mainWindow: BrowserWindow;
 const PROTOCOL = 'file';
@@ -100,7 +102,7 @@ const init = async () => {
 
         registerShortcuts(mainWindow);
     }
-
+    initUpdater();
     mainWindow.loadURL(src);
 };
 
