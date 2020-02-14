@@ -2,7 +2,7 @@ import * as notificationActions from '@suite-actions/notificationActions';
 import { Dispatch, GetState } from '@suite-types';
 import { SEND } from '@wallet-actions/constants';
 import { XRP_FLAG } from '@wallet-constants/sendForm';
-import { networkAmountToSatoshi } from '@wallet-utils/accountUtils';
+import { networkAmountToSatoshi, formatNetworkAmount } from '@wallet-utils/accountUtils';
 import { calculateMax, calculateTotal, getOutput } from '@wallet-utils/sendFormUtils';
 import Bignumber from 'bignumber.js';
 import TrezorConnect from 'trezor-connect';
@@ -88,12 +88,27 @@ export const send = () => async (dispatch: Dispatch, getState: GetState) => {
 
     const { account } = selectedAccount;
     const { selectedFee, outputs, networkTypeRipple } = send;
+    const address = outputs[0].address.value;
     const { destinationTag } = networkTypeRipple;
 
     if (account.networkType !== 'ripple' || !destinationTag) return null;
 
+    if (address) {
+        const response = await TrezorConnect.getAccountInfo({
+            coin: account.symbol,
+            descriptor: address,
+        });
+
+        if (response.success) {
+            const targetAccountBalance = formatNetworkAmount(response.payload.balance, account.symbol));
+            if(targetAccountBalance < 20) {
+                console.log('aaaa')
+            }
+        }
+    }
+
     const payment: Payment = {
-        destination: outputs[0].address.value,
+        destination: address,
         amount: networkAmountToSatoshi(outputs[0].amount.value, account.symbol),
     };
 
