@@ -75,10 +75,13 @@ export default (state: State | null = null, action: WalletAction): State | null 
                     return draft;
                 }
 
-                if (networkType === 'ripple' && currentAccountAddress === address) {
-                    output.address.error = VALIDATION_ERRORS.CANNOT_SEND_TO_MYSELF;
-                    return draft;
+                if (networkType === 'ripple') {
+                    if (currentAccountAddress === address) {
+                        output.address.error = VALIDATION_ERRORS.XRP_CANNOT_SEND_TO_MYSELF;
+                        return draft;
+                    }
                 }
+
                 break;
             }
 
@@ -257,6 +260,19 @@ export default (state: State | null = null, action: WalletAction): State | null 
                         output => (output.amount.error = VALIDATION_ERRORS.NOT_ENOUGH),
                     );
                 }
+                return draft;
+            }
+
+            // check xrp destination account reserve
+            case SEND.XRP_CHECK_ACCOUNT_RESERVE: {
+                const { isAmountOk, outputId } = action;
+                const output = getOutput(draft.outputs, outputId);
+                output.amount.error = null;
+
+                if (!isAmountOk) {
+                    output.amount.error = VALIDATION_ERRORS.XRP_CANNOT_SEND_LESS_THAN_RESERVE;
+                }
+
                 return draft;
             }
 

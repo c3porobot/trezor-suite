@@ -134,7 +134,7 @@ export const removeRecipient = (outputId: number) => (dispatch: Dispatch, getSta
 /*
     Send transaction
  */
-export const send = () => async (dispatch: Dispatch, getState: GetState) => {
+export const sendTransaction = () => async (dispatch: Dispatch, getState: GetState) => {
     const { send, selectedAccount } = getState().wallet;
     const selectedDevice = getState().suite.device;
     const account = selectedAccount.account as Account;

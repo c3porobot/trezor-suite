@@ -116,7 +116,7 @@ export default ({ send, suite, account, device, modalActions }: Props) => {
     const { isComposing, customFee } = send;
     const { networkType, symbol } = account;
     const transactionInfo = getTransactionInfo(networkType, send);
-
+   
     return (
         <Wrapper>
             <Row>

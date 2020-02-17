@@ -3,6 +3,7 @@ import { Account } from '@wallet-types';
 import { FeeLevel, PrecomposedTransaction } from 'trezor-connect';
 import { PrecomposedTransactionXrp, PrecomposedTransactionEth } from './transactions';
 import { Output } from './output';
+import { VALIDATION_ERRORS } from '@wallet-constants/sendForm';
 import { InitialState } from './state';
 
 export type SendFormActions =
@@ -18,6 +19,7 @@ export type SendFormActions =
           type: typeof SEND.HANDLE_AMOUNT_CHANGE;
           outputId: number;
           amount: string;
+          error?: typeof VALIDATION_ERRORS.XRP_CANNOT_SEND_LESS_THAN_RESERVE;
           decimals: number;
           availableBalance: Account['availableBalance'];
       }
@@ -63,7 +65,12 @@ export type SendFormBtcActions =
 
 export type SendFormXrpActions =
     | { type: typeof SEND.XRP_HANDLE_DESTINATION_TAG_CHANGE; destinationTag: string }
-    | { type: typeof SEND.XRP_PRECOMPOSED_TX; payload: PrecomposedTransactionXrp };
+    | { type: typeof SEND.XRP_PRECOMPOSED_TX; payload: PrecomposedTransactionXrp }
+    | {
+          type: typeof SEND.XRP_CHECK_ACCOUNT_RESERVE;
+          outputId: number;
+          isAmountOk: boolean;
+      };
 
 export type SendFormEthActions =
     | { type: typeof SEND.ETH_HANDLE_GAS_LIMIT; gasLimit: string }

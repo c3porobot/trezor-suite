@@ -3,6 +3,7 @@ import messages from '@suite/support/messages';
 import { Account, Network } from '@wallet-types';
 import React from 'react';
 import styled from 'styled-components';
+import { formatNetworkAmount } from '@wallet-utils/accountUtils';
 import { Output } from '@wallet-types/sendForm';
 import { Input, colors, Icon, Tooltip } from '@trezor/components-v2';
 import { VALIDATION_ERRORS, LABEL_HEIGHT } from '@wallet-constants/sendForm';
@@ -51,7 +52,11 @@ const EqualsSign = styled.div`
     padding: ${LABEL_HEIGHT + 15}px 20px 0;
 `;
 
-const getMessage = (error: Output['amount']['error'], decimals: Network['decimals']) => {
+const getMessage = (
+    error: Output['amount']['error'],
+    decimals: Network['decimals'],
+    reserve: string,
+) => {
     switch (error) {
         case VALIDATION_ERRORS.IS_EMPTY:
             return <Translation {...messages.TR_AMOUNT_IS_NOT_SET} />;
@@ -64,6 +69,13 @@ const getMessage = (error: Output['amount']['error'], decimals: Network['decimal
                 <Translation
                     {...messages.TR_AMOUNT_IS_NOT_IN_RANGE_DECIMALS}
                     values={{ decimals }}
+                />
+            );
+        case VALIDATION_ERRORS.XRP_CANNOT_SEND_LESS_THAN_RESERVE:
+            return (
+                <Translation
+                    {...messages.TR_XRP_CANNOT_SEND_LESS_THAN_RESERVE}
+                    values={{ reserve }}
                 />
             );
         default:
@@ -94,6 +106,7 @@ export default ({ fiat, sendFormActions, intl, output, selectedAccount }: Props)
 
     const { account, network } = selectedAccount;
     const { symbol } = account;
+    const reserve = formatNetworkAmount(account.misc.reserve, symbol);
     const { decimals } = network;
     const { id, amount, fiatValue, localCurrency } = output;
     const { value, error } = amount;
@@ -123,7 +136,7 @@ export default ({ fiat, sendFormActions, intl, output, selectedAccount }: Props)
                     display="block"
                     value={value || ''}
                     onChange={e => sendFormActions.handleAmountChange(id, e.target.value)}
-                    bottomText={getMessage(error, decimals)}
+                    bottomText={getMessage(error, decimals, reserve)}
                 />
                 <CurrencySelect key="currency-select" symbol={symbol} tokens={account.tokens} />
             </Left>

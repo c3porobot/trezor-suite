@@ -10,6 +10,7 @@ import { getOutput, hasDecimals, shouldComposeBy } from '@wallet-utils/sendFormU
 import { getLocalCurrency } from '@wallet-utils/settingsUtils';
 import BigNumber from 'bignumber.js';
 import { fromWei } from 'web3-utils';
+import debounce from 'debounce';
 
 import * as bitcoinActions from './sendFormBitcoinActions';
 import * as ethereumActions from './sendFormEthereumActions';
@@ -152,7 +153,7 @@ export const handleAddressChange = (outputId: number, address: string) => (
 /*
     Change value in input "Amount"
  */
-export const handleAmountChange = (outputId: number, amount: string) => (
+export const handleAmountChange = (outputId: number, amount: string) => async (
     dispatch: Dispatch,
     getState: GetState,
 ) => {
@@ -161,6 +162,8 @@ export const handleAmountChange = (outputId: number, amount: string) => (
     const { account, network } = selectedAccount;
 
     const output = getOutput(send.outputs, outputId);
+    const address = output.address.value;
+    const amount = output.amount.value;
     const fiatNetwork = fiat.find(item => item.symbol === account.symbol);
     const isValidAmount = hasDecimals(amount, network.decimals);
 

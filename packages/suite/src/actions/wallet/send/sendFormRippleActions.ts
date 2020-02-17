@@ -2,9 +2,9 @@ import * as notificationActions from '@suite-actions/notificationActions';
 import { Dispatch, GetState } from '@suite-types';
 import { SEND } from '@wallet-actions/constants';
 import { XRP_FLAG } from '@wallet-constants/sendForm';
-import { networkAmountToSatoshi } from '@wallet-utils/accountUtils';
+import { formatNetworkAmount, networkAmountToSatoshi } from '@wallet-utils/accountUtils';
 import { calculateMax, calculateTotal, getOutput } from '@wallet-utils/sendFormUtils';
-import Bignumber from 'bignumber.js';
+import BigNumber from 'bignumber.js';
 import TrezorConnect from 'trezor-connect';
 
 /*
@@ -20,9 +20,9 @@ export const compose = () => async (dispatch: Dispatch, getState: GetState) => {
     const { availableBalance } = account;
     const feeInSatoshi = send.selectedFee.feePerUnit;
     let tx;
-    const totalSpentBig = new Bignumber(calculateTotal(amountInSatoshi, feeInSatoshi));
+    const totalSpentBig = new BigNumber(calculateTotal(amountInSatoshi, feeInSatoshi));
 
-    const max = new Bignumber(calculateMax(availableBalance, feeInSatoshi));
+    const max = new BigNumber(calculateMax(availableBalance, feeInSatoshi));
     const payloadData = {
         totalSpent: totalSpentBig.toString(),
         fee: feeInSatoshi,
@@ -63,6 +63,43 @@ export const compose = () => async (dispatch: Dispatch, getState: GetState) => {
 };
 
 /*
+    Check destination account reserve
+*/
+
+export const checkAccountReserve = (outputId: number, amount: string) => async (
+    dispatch: Dispatch,
+    getState: GetState,
+) => {
+    const { send, selectedAccount } = getState().wallet;
+    if (!send || selectedAccount.status !== 'loaded') return;
+    const { account } = selectedAccount;
+    const { misc } = account;
+    const output = getOutput(send.outputs, outputId);
+    const address = output.address.value;
+    const amountBig = new BigNumber(amount);
+
+    if (!address || !amount || !misc) return null;
+
+    const response = await TrezorConnect.getAccountInfo({
+        coin: account.symbol,
+        descriptor: address,
+    });
+
+    // TODO: handle error state
+    if (response.success) {
+        const targetAccountBalance = formatNetworkAmount(response.payload.balance, account.symbol);
+        const reserve = formatNetworkAmount(misc.reserve, account.symbol);
+        const targetAccountIsActive = new BigNumber(targetAccountBalance).isGreaterThan(reserve);
+
+        dispatch({
+            type: SEND.XRP_CHECK_ACCOUNT_RESERVE,
+            outputId,
+            isAmountOk: targetAccountIsActive || amountBig.isGreaterThan(reserve),
+        });
+    }
+};
+
+/*
     Change value in input "destination tag"
  */
 export const handleDestinationTagChange = (destinationTag: string) => (dispatch: Dispatch) => {
@@ -81,7 +118,7 @@ interface Payment {
 /*
     Send transaction
  */
-export const send = () => async (dispatch: Dispatch, getState: GetState) => {
+export const sendTransaction = () => async (dispatch: Dispatch, getState: GetState) => {
     const { send, selectedAccount } = getState().wallet;
     const selectedDevice = getState().suite.device;
     if (!send || !selectedDevice || selectedAccount.status !== 'loaded') return;

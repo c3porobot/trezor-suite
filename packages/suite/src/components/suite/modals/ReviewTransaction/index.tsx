@@ -141,13 +141,13 @@ export default ({
                     onClick={() => {
                         switch (networkType) {
                             case 'bitcoin':
-                                sendFormActionsBitcoin.send();
+                                sendFormActionsBitcoin.sendTransaction();
                                 break;
                             case 'ethereum':
-                                sendFormActionsEthereum.send();
+                                sendFormActionsEthereum.sendTransaction();
                                 break;
                             case 'ripple':
-                                sendFormActionsRipple.send();
+                                sendFormActionsRipple.sendTransaction();
                                 break;
                             // no default
                         }
