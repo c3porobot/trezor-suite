@@ -171,6 +171,7 @@ const PassphraseTypeCard = (props: Props) => {
                                 icon: showPassword ? 'HIDE' : 'SHOW',
                                 onClick: () => setShowPassword(!showPassword),
                             }}
+                            autoComplete="new-password"
                         />
                         {!isTooLong && <PasswordStrengthIndicator password={value} />}
                     </InputWrapper>
