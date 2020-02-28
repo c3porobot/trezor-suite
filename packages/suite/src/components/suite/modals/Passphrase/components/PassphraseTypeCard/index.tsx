@@ -149,6 +149,16 @@ const PassphraseTypeCard = (props: Props) => {
                 )}
                 {props.showPassphraseInput && (
                     <InputWrapper>
+                        <input
+                            style={{ display: 'none' }}
+                            type="text"
+                            name="fakeusernameremembered"
+                        />
+                        <input
+                            style={{ display: 'none' }}
+                            type="password"
+                            name="fakepasswordremembered"
+                        />
                         <PassphraseInput
                             data-test="@passhphrase/input"
                             onChange={event => setValue(event.target.value)}
@@ -171,7 +181,8 @@ const PassphraseTypeCard = (props: Props) => {
                                 icon: showPassword ? 'HIDE' : 'SHOW',
                                 onClick: () => setShowPassword(!showPassword),
                             }}
-                            autoComplete="new-password"
+                            autoComplete="dont-trigger-autofill"
+                            name="whatever"
                         />
                         {!isTooLong && <PasswordStrengthIndicator password={value} />}
                     </InputWrapper>
